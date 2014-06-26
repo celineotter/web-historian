@@ -4,6 +4,8 @@ var headers = require('../web/http-helpers').headers;
 var url = require('url');
 // require more modules/folders here!
 
+
+
 exports.handleRequest = function (request, response) {
   var statusCode;
   var serverResponse = {results: 'Resource not found.'};
@@ -15,6 +17,8 @@ exports.handleRequest = function (request, response) {
     var parsedURL = url.parse(request.url, true, true);
     // lookup path(name) in url object
     var path = parsedURL.path;
+    console.log('@@@@@@@@@@@@@@@@@@@ path:' + path)
+
     // if query object is empty
     if( Object.keys(parsedURL.query).length === 0 )
       // if path in url object is / or /index.html (if it's one of our files)
@@ -26,25 +30,11 @@ exports.handleRequest = function (request, response) {
           if( !err ){
             // write response
             statusCode = 200;
+            //switch header content type depending on file type
             headers['Content-Type'] = 'text/html'; // for HTML
             // headers['Content-Length'] = data.length;
             serverResponse = data;
             console.log('***** statusCode: ', statusCode, '***** headers: ', headers, '***** error', '***** data: ', data);
-            //***********************************
-            fs.readFile(archive.paths.siteAssets.concat('/styles.css'), 'utf-8', function(err, data){  //***
-              //if no errors
-              if( !err ){
-                // write response
-                statusCode = 200;
-                headers['Content-Type'] = 'text/css'; // for CSS
-                // headers['Content-Length'] = data.length;
-                serverResponse = data;
-              }else{
-                //error on CSS send?
-              }
-              sendResponse();
-            });
-            //***********************************
           }else{
             // send error
             console.log('***** error: 204!');
@@ -54,6 +44,21 @@ exports.handleRequest = function (request, response) {
           //  response
           sendResponse();
         });
+      }else if( (path === '/styles.css') ){
+        //***********************************
+        fs.readFile(archive.paths.siteAssets.concat('/styles.css'), 'utf-8', function(err, data){  //***
+          console.log('@@@@@@@@@@@@@@@@@@@ here we are!');
+          //if no errors
+          if( !err ){
+            // write response
+            statusCode = 200;
+            headers['Content-Type'] = 'text/css'; // for CSS
+            // headers['Content-Length'] = data.length;
+            serverResponse = data;
+          } // if css file fails, don't worry 'bout it
+          sendResponse();
+        });
+        //***********************************
       }
     // else if query object is not empty
       // if it is valid
@@ -63,7 +68,11 @@ exports.handleRequest = function (request, response) {
 
   } else if ( request.method === 'POST' ){ // never intending to receive POST requests, but just in case
     statusCode = 201;
-    serverResponse = {results: 'You are not allowed to POST.'};
+
+
+
+
+    //serverResponse = {results: 'You are not allowed to POST.'};
     sendResponse();
 
   }
