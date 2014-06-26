@@ -26,16 +26,41 @@ exports.initialize = function(pathsObj){
 // modularize your code. Keep it clean!
 
 exports.readListOfUrls = function(){
+  // server - archive & to-archive
+  // after post request (Target URL must be parsed), route as follows:
+
+  //server
+  // if isUrlInList(Target = URL, List = path.archivedSites)
+    // if isURLArchived()
+      // access target file ocntent & return it in loading html
+    // else
+      //
+      // downloadUrls
+  // else addUrlToList(Target)
+
+  //cron -- maybe needs its own functions
+
 };
 
 exports.isUrlInList = function(){
+  // server
+  // iterator
+  // does any item match target ? T : F
+  //
 };
 
 exports.addUrlToList = function(){
+  // server only
+};
+
+exports.deleteURLFromList = function(){
+  // cron only, after archive (scrape) end
 };
 
 exports.isURLArchived = function(){
+  // server only
 };
 
 exports.downloadUrls = function(){
+  // cron only
 };
