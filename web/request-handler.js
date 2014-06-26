@@ -23,7 +23,6 @@ exports.handleRequest = function (request, response) {
     if( Object.keys(parsedURL.query).length === 0 )
       // if path in url object is / or /index.html (if it's one of our files)
       if( (path === '/') || (path === '/index.html') ){
-        console.log('***** reached / or /index.html --- send file: ', archive.paths.siteAssets.concat('/index.html'));
         // read file on server
         fs.readFile(archive.paths.siteAssets.concat('/index.html'), 'utf-8', function(err, data){  //***
           //if no errors
@@ -34,7 +33,6 @@ exports.handleRequest = function (request, response) {
             headers['Content-Type'] = 'text/html'; // for HTML
             // headers['Content-Length'] = data.length;
             serverResponse = data;
-            console.log('***** statusCode: ', statusCode, '***** headers: ', headers, '***** error', '***** data: ', data);
           }else{
             // send error
             console.log('***** error: 204!');
@@ -46,8 +44,8 @@ exports.handleRequest = function (request, response) {
         });
       }else if( (path === '/styles.css') ){
         //***********************************
+        console.log('**** path: ', path);
         fs.readFile(archive.paths.siteAssets.concat('/styles.css'), 'utf-8', function(err, data){  //***
-          console.log('@@@@@@@@@@@@@@@@@@@ here we are!');
           //if no errors
           if( !err ){
             // write response
@@ -59,6 +57,34 @@ exports.handleRequest = function (request, response) {
           sendResponse();
         });
         //***********************************
+      } else if (path.indexOf('.com') !== -1 ){
+        if (path.substring(0, 4) === 'www.') {
+          path = path.slice(4);
+        }
+
+        fs.readFile(archive.paths.archivedSites.concat(path), 'utf-8', function(err, data){  //***
+
+          if( !err ){
+            statusCode = 200;
+
+            headers['Content-Type'] = 'text/html';
+
+            serverResponse = data;
+          }else{
+            statusCode = 200; // not 204?
+
+            serverResponse = err;
+          }
+          console.log('***** statusCode: ', statusCode);
+          sendResponse();
+        });
+      }else{
+        statusCode = 501;
+
+        serverResponse = null;
+
+        console.log('***** statusCode: ', statusCode);
+        sendResponse();
       }
     // else if query object is not empty
       // if it is valid
