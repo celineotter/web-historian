@@ -35,7 +35,7 @@ exports.handleRequest = function (request, response) {
       return serveAssets(response, archive.paths.archivedSites.concat(path));
 
     }else{
-      statusCode = 501;
+      statusCode = 404;
       serverResponse = null;
       response.writeHead(statusCode, headers);
       return response.end(serverResponse);

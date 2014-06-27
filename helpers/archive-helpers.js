@@ -37,24 +37,10 @@ exports.readListOfUrls = readListOfUrls = function(response, targetUrl){
       if( isUrlInList(list, targetUrl) ){
         // console.log('$$$$$$ isUrlInList: ', isUrlInList(list, targetUrl));
         // if isURLArchived()
-        if( isUrlArchived(targetUrl) ){
-          // serve target to client
-          return serveAssets(response, paths.archivedSites.concat('/').concat(targetUrl));
-        }else{
-          // serve up loading.html
-          console.log('***** isUrlInList === true, so serve loading.html')
-          return serveAssets(response, paths.siteAssets.concat('/loading.html'));
-        }
+        isUrlArchived(response, targetUrl);
       }else{
         //add url to sites.txt
-        fs.appendFile(paths.list, targetUrl.concat('\n'), 'utf-8', function(err){
-          if( err ) throw err;
-          console.log('WE SAVED IT!');
-          //serve up loading.html
-          console.log('***** isUrlInList === false, so serve loading.html')
-          return serveAssets(response, paths.siteAssets.concat('/loading.html'));
-        });
-
+        return addUrlToList(response, targetUrl);
       }
     }
   });
@@ -72,22 +58,37 @@ exports.isUrlInList = isUrlInList = function(list, targetUrl){
   }
 };
 
-exports.addUrlToList = addUrlToList = function(){
+exports.addUrlToList = addUrlToList = function(response, targetUrl){
   // server only
+  fs.appendFile(paths.list, targetUrl.concat('\n'), 'utf-8', function(err){
+    if( err ) throw err;
+    //serve up loading.html
+    // console.log('***** isUrlInList === false, so serve loading.html');
+    return serveAssets(response, paths.siteAssets.concat('/loading.html'));
+  });
 };
 
 exports.deleteUrlFromList = deleteUrlFromList = function(){
   // cron only, after archive (scrape) end
 };
 
-exports.isUrlArchived = isUrlArchived = function(targetUrl){
+exports.isUrlArchived = isUrlArchived = function(response, targetUrl){
   // server only
-  fs.readFile(paths.archivedSites.concat('/'+ targetUrl), 'utf-8', function(err, list){
+  fs.readdir(paths.archivedSites, function(err, list){
     if (err){
-      console.log('not in archive');
-      return false;
+      throw err;
     } else {
-      return true;
+      for( var i = 0; i < list.length; i++ ){
+        console.log(list[i] === targetUrl, list[i], targetUrl);
+        if( list[i] === targetUrl ) {
+          console.log('***** isUrlArchived === true, so serve ', targetUrl);
+          // serve target to client
+          return serveAssets(response, paths.archivedSites.concat('/').concat(targetUrl));
+        }
+      }
+      // serve up loading.html
+      console.log('***** isUrlArchived === false, so serve loading.html');
+      return serveAssets(response, paths.siteAssets.concat('/loading.html'));
     }
   });
 };
