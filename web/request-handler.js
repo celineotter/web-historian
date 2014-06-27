@@ -7,100 +7,70 @@ var url = require('url');
 
 
 exports.handleRequest = function (request, response) {
-  var statusCode;
+  var statusCode = 200;
   var serverResponse = {results: 'Resource not found.'};
-  // var targetURL = '';
+  var parsedURL;
+  var path;
 
   if (request.method === 'GET' ){
 
     // store parsed url object in a variable
-    var parsedURL = url.parse(request.url, true, true);
+    parsedURL = url.parse(request.url, true, true);
     // lookup path(name) in url object
-    var path = parsedURL.path;
-    console.log('@@@@@@@@@@@@@@@@@@@ path:' + path)
+    path = parsedURL.path;
 
-    // if query object is empty
-    if( Object.keys(parsedURL.query).length === 0 )
-      // if path in url object is / or /index.html (if it's one of our files)
-      if( (path === '/') || (path === '/index.html') ){
-        // read file on server
-        fs.readFile(archive.paths.siteAssets.concat('/index.html'), 'utf-8', function(err, data){  //***
-          //if no errors
-          if( !err ){
-            // write response
-            statusCode = 200;
-            //switch header content type depending on file type
-            headers['Content-Type'] = 'text/html'; // for HTML
-            // headers['Content-Length'] = data.length;
-            serverResponse = data;
-          }else{
-            // send error
-            console.log('***** error: 204!');
-            statusCode = 204;
-            serverResponse = 'Invalid input. Must be a valid URL.';
-          }
-          //  response
-          sendResponse();
-        });
-      }else if( (path === '/styles.css') ){
-        //***********************************
-        console.log('**** path: ', path);
-        fs.readFile(archive.paths.siteAssets.concat('/styles.css'), 'utf-8', function(err, data){  //***
-          //if no errors
-          if( !err ){
-            // write response
-            statusCode = 200;
-            headers['Content-Type'] = 'text/css'; // for CSS
-            // headers['Content-Length'] = data.length;
-            serverResponse = data;
-          } // if css file fails, don't worry 'bout it
-          sendResponse();
-        });
-        //***********************************
-      } else if (path.indexOf('.com') !== -1 ){
-        if (path.substring(0, 4) === 'www.') {
-          path = path.slice(4);
+    //router for GET requests
+    if( (path === '/') || (path === '/index.html') ){
+      serveTargetFile('/index.html');
+
+    }else if( path === '/styles.css' ){
+      serveTargetFile(path, 200, 'text/css');
+
+    }else if(path.indexOf('.com') !== -1 ){
+      if (path.substring(0, 4) === 'www.') { path = path.slice(4); }
+
+      fs.readFile(archive.paths.archivedSites.concat(path), 'utf-8', function(err, data){  //***
+
+        if( !err ){
+          statusCode = 200;
+          headers['Content-Type'] = 'text/html';
+          serverResponse = data;
+        }else{
+          statusCode = 200; // not 204?
+          serverResponse = err;
         }
-
-        fs.readFile(archive.paths.archivedSites.concat(path), 'utf-8', function(err, data){  //***
-
-          if( !err ){
-            statusCode = 200;
-
-            headers['Content-Type'] = 'text/html';
-
-            serverResponse = data;
-          }else{
-            statusCode = 200; // not 204?
-
-            serverResponse = err;
-          }
-          console.log('***** statusCode: ', statusCode);
-          sendResponse();
-        });
-      }else{
-        statusCode = 501;
-
-        serverResponse = null;
-
-        console.log('***** statusCode: ', statusCode);
         sendResponse();
-      }
-    // else if query object is not empty
-      // if it is valid
-        // initiate searching of our archives
-      // else
-        // serve index.html with message "invalid input - must be a website query"
+      });
+    }else{
+      statusCode = 501;
+      serverResponse = null;
+    }
 
-  } else if ( request.method === 'POST' ){ // never intending to receive POST requests, but just in case
-    statusCode = 201;
+  //router for POST requests
+  } else if ( request.method === 'POST' ){
+    parsedURL = url.parse(request.url, true, true);
+    var targetURL = parsedURL;
+    var dataBody = '';
 
+    request.on('data', function (d){
+      dataBody += d;
+    });
+
+    request.on('end', function(){
+      dataBody = dataBody.slice(4);
+      console.log('***** body', dataBody);
+      // if query object is not empty
+      // if( dataBody.length === 0 ){
+      serveTargetFile('/loading.html', 201);
+    });
+
+    // }
+      // assign query to target URL
+      // initiate searching of our archives - read list of URLs for match
 
 
 
     //serverResponse = {results: 'You are not allowed to POST.'};
-    sendResponse();
-
   }
 
   function sendResponse(){
@@ -108,4 +78,20 @@ exports.handleRequest = function (request, response) {
     response.end(serverResponse);
   }
 
+  function serveTargetFile (file, statusCode, contentType) {
+    // read file on server
+    fs.readFile(archive.paths.siteAssets.concat(file), 'utf-8', function(err, data){
+      if( !err ){
+        // write response
+        statusCode = statusCode || 200;
+        //switch header content type depending on file type
+        headers['Content-Type'] = contentType || 'text/html';
+        serverResponse = data;
+      }else{
+        statusCode = 204;
+        serverResponse = 'Invalid input. Must be a valid URL.';
+      }
+      sendResponse();
+    });
+  }
 };
