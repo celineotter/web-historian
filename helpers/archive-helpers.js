@@ -9,7 +9,7 @@ var _ = require('underscore');
  * customize it in any way you wish.
  */
 
-exports.paths = {
+exports.paths = paths = {
   'siteAssets' : path.join(__dirname, '../web/public'),
   'archivedSites' : path.join(__dirname, '../archives/sites'),
   'list' : path.join(__dirname, '../archives/sites.txt')
@@ -25,24 +25,47 @@ exports.initialize = function(pathsObj){
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(){
-  // server - archive & to-archive
-  // after post request (Target URL must be parsed), route as follows:
+exports.readListOfUrls = function(targetUrl){
+  console.log('&&&&& readListOfUrls(', targetUrl, ')');
+  fs.readFile(paths.list, 'utf-8', function(err, list){
+    if( err ) {
+      throw err;
+    }else{
+      console.log('***** isUrlInList: ', exports.isUrlInList(list, targetUrl));/* ){
+        if( exports.isURLArchived(targetUrl) ){
+          return cacheFile; //????
+        }
+      }*/
+    }
+  });
 
-  //server
+
+
+
+    // initiate searching of our archives - read list of URLs for match
+
   // if isUrlInList(Target = URL, List = path.archivedSites)
     // if isURLArchived()
-      // access target file ocntent & return it in loading html
+      // serve target to client
     // else
-      //
-      // downloadUrls
-  // else addUrlToList(Target)
+      // serve loading.html to client
+  // else
+    // addUrlToList(target)
+    // serve loading.html
+    // serveTargetFile('/loading.html', 201);
+
 
   //cron -- maybe needs its own functions
 
 };
 
-exports.isUrlInList = function(){
+exports.isUrlInList = function(list, targetUrl){
+  console.log('***** list: ', list, list.length, typeof(list));
+  if (list.indexOf(targetUrl) !== -1) {
+    return true;
+  } else {
+    return false;
+  }
   // server
   // iterator
   // does any item match target ? T : F
