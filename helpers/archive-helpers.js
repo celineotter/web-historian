@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var serveAssets = require('../web/http-helpers.js').serveAssets;
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -25,26 +26,28 @@ exports.initialize = function(pathsObj){
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(targetUrl){
-  console.log('&&&&& readListOfUrls(', targetUrl, ')');
+exports.readListOfUrls = readListOfUrls = function(response, targetUrl){
+  // console.log('&&&&& readListOfUrls(', targetUrl, ')');
+  // initiate searching of our archives - read list of URLs for match
   fs.readFile(paths.list, 'utf-8', function(err, list){
     if( err ) {
       throw err;
     }else{
-      console.log('***** isUrlInList: ', exports.isUrlInList(list, targetUrl));/* ){
-        if( exports.isURLArchived(targetUrl) ){
-          return cacheFile; //????
+      // if isUrlInList(Target = URL, List = path.archivedSites)
+
+      if( isUrlInList(list, targetUrl) ){
+        // console.log('$$$$$$ isUrlInList: ', isUrlInList(list, targetUrl));
+        if( isUrlArchived(targetUrl) ){
+          return serveAssets(response, paths.archivedSites.concat('/').concat(targetUrl));
         }
-      }*/
+      }
     }
   });
 
 
 
 
-    // initiate searching of our archives - read list of URLs for match
 
-  // if isUrlInList(Target = URL, List = path.archivedSites)
     // if isURLArchived()
       // serve target to client
     // else
@@ -59,31 +62,28 @@ exports.readListOfUrls = function(targetUrl){
 
 };
 
-exports.isUrlInList = function(list, targetUrl){
-  console.log('***** list: ', list, list.length, typeof(list));
+exports.isUrlInList = isUrlInList = function(list, targetUrl){
+  // console.log('***** list: ', list, list.length, typeof(list));
   if (list.indexOf(targetUrl) !== -1) {
     return true;
   } else {
     return false;
   }
-  // server
-  // iterator
-  // does any item match target ? T : F
-  //
 };
 
-exports.addUrlToList = function(){
+exports.addUrlToList = addUrlToList = function(){
   // server only
 };
 
-exports.deleteURLFromList = function(){
+exports.deleteUrlFromList = deleteUrlFromList = function(){
   // cron only, after archive (scrape) end
 };
 
-exports.isURLArchived = function(){
+exports.isUrlArchived = isUrlArchived = function(){
   // server only
+  return true;
 };
 
-exports.downloadUrls = function(){
+exports.downloadUrls = downloadUrls = function(){
   // cron only
 };

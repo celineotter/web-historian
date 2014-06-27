@@ -22,32 +22,23 @@ exports.handleRequest = function (request, response) {
 
     //router for GET requests
     if( (path === '/') || (path === '/index.html') ){
-      serveAssets(response, '/index.html');
+      // console.log(archive.paths.siteAssets.concat(path));
+      return serveAssets(response, archive.paths.siteAssets.concat('/index.html'));
 
     }else if( path === '/styles.css' ){
-      serveAssets(response, path, 200, 'text/css');
+      // console.log(archive.paths.siteAssets.concat(path));
+      return serveAssets(response, archive.paths.siteAssets.concat(path), 200, 'text/css');
 
     }else if(path.indexOf('.com') !== -1 ){
       if (path.substring(0, 4) === 'www.') { path = path.slice(4); }
+      // console.log(archive.paths.archivedSites.concat(path));
+      return serveAssets(response, archive.paths.archivedSites.concat(path));
 
-      fs.readFile(archive.paths.archivedSites.concat(path), 'utf-8', function(err, data){  //***
-
-        if( !err ){
-          statusCode = 200;
-          headers['Content-Type'] = 'text/html';
-          serverResponse = data;
-        }else{
-          statusCode = 200; // not 204?
-          serverResponse = err;
-        }
-        response.writeHead(statusCode, headers);
-        response.end(serverResponse);
-      });
     }else{
       statusCode = 501;
       serverResponse = null;
       response.writeHead(statusCode, headers);
-      response.end(serverResponse);
+      return response.end(serverResponse);
     }
 
   //router for POST requests
@@ -61,11 +52,11 @@ exports.handleRequest = function (request, response) {
 
     request.on('end', function(){
       targetUrl = targetUrl.slice(4);
+
+      if( targetUrl.length === 0 ){ return serveAssets(response, archive.paths.siteAssets.concat('/index.html'), 301); }
+
       console.log('***** targetUrl: ', targetUrl);
-
-      if( targetUrl.length === 0 ){ serveAssets(response, '/index.html', 301); }
-
-      archive.readListOfUrls(targetUrl);
+      archive.readListOfUrls(response, targetUrl);
     });
   }
 
