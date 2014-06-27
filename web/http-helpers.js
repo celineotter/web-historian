@@ -19,14 +19,14 @@ exports.serveAssets = function(response, file, statusCode, contentType) {
   var serverResponse;
   statusCode = statusCode || 200;
   // read file on server
-  fs.readFile(file, 'utf-8', function(err, data){
+  fs.readFile(file, 'utf-8', function(err, file){
     if( !err ){
       // write response
       //switch header content type depending on file type
       headers['Content-Type'] = contentType || 'text/html';
-      serverResponse = data;
-      console.log('***** WE ARE SERVING UP A CACHED FILE: ', data);
+      serverResponse = file;
     }else{
+      console.log('()()()()()() DATA: ', file);
       statusCode = 204;
       serverResponse = 'Invalid input. Must be a valid URL.';
     }
